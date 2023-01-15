@@ -1,7 +1,7 @@
-# CS-EDU
+# Computer Science
 
--INTRODUCTION
-  This repo is for CS lectures and related projects.
+## INTRODUCTION
+  This repo is for Computer Science lectures and related projects.
 
--TABLE OF CONTENTS
-  1- Introduction to Computer Science
+## TABLE OF CONTENTS
+  * Introduction to Computer Science
