@@ -5,4 +5,6 @@
 
 ## TABLE OF CONTENTS
   * Algorithms
+  * Data Structures
+  * SQL
   
