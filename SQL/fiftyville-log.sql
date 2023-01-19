@@ -63,69 +63,35 @@ WHERE year == 2021
 AND month == 7
 AND day == 28
 AND transaction_type == 'withdraw'
-AND atm_location LIKE 'Humphrey%';
+AND atm_location LIKE 'Leggett%';
 
 --| amount | account_number |
 --+--------+----------------+
---| 45     | 90209473       |
---| 15     | 41935128       |
---| 55     | 66344537       |
---| 5      | 92647903       |
---| 35     | 40665580       |
---| 20     | 96336648       |
---| 20     | 69638157       |
---| 15     | 13156006       |
---| 40     | 89843009       |
---| 40     | 92647903       |
---| 55     | 57022441       |
---| 5      | 79165736       |
---| 10     | 76849114       |
---| 60     | 66344537       |
---| 100    | 50380485       |
---| 60     | 46222318       |
---| 10     | 58673910       |
---| 35     | 93903397       |
---| 65     | 79127781       |
---| 45     | 95773068       |
---| 35     | 26797365       |
---| 100    | 34939061       |
---| 50     | 65190958       |
---| 20     | 99031604       |
---| 30     | 58552019       |
---| 5      | 55322348       |
+--| 48     | 28500762       |
+--| 20     | 28296815       |
+--| 60     | 76054385       |
+--| 50     | 49610011       |
+--| 80     | 16153065       |
+--| 20     | 25506511       |
+--| 30     | 81061156       |
+--| 35     | 26013199       |
 
 SELECT person_id, creation_year
 FROM bank_accounts
 WHERE account_number IN (SELECT account_number FROM atm_transactions
 WHERE year == 2021 AND month == 7 AND day == 28
-AND transaction_type == 'withdraw' AND atm_location LIKE 'Humphrey%');
+AND transaction_type == 'withdraw' AND atm_location LIKE 'Leggett%');
 
 --| person_id | creation_year |
 --+-----------+---------------+
---| 779942    | 2010          |
---| 539960    | 2011          |
---| 985539    | 2011          |
---| 484375    | 2011          |
---| 632023    | 2011          |
---| 704850    | 2012          |
---| 757606    | 2012          |
---| 293753    | 2012          |
---| 572028    | 2012          |
---| 274388    | 2012          |
---| 567218    | 2012          |
---| 229572    | 2013          |
---| 652412    | 2013          |
---| 341739    | 2014          |
---| 713341    | 2015          |
---| 637069    | 2016          |
---| 630782    | 2016          |
---| 336397    | 2016          |
---| 769190    | 2017          |
---| 274893    | 2017          |
---| 929343    | 2017          |
---| 920334    | 2017          |
---| 837455    | 2018          |
---| 506435    | 2019          |
+--| 686048    | 2010          |
+--| 514354    | 2012          |
+--| 458378    | 2012          |
+--| 395717    | 2014          |
+--| 396669    | 2014          |
+--| 467400    | 2014          |
+--| 449774    | 2015          |
+--| 438727    | 2018          |
 
 ------------------------------------------
 
@@ -153,70 +119,73 @@ AND day == 28;
 
 --WITH READING AIRPORTS, FOUND THE INFO ABOUT FIFTYVILLE AIRPORT
 SELECT id, abbreviation, full_name, city
-FROM airports
+FROM airports;
 WHERE city == 'Fiftyville';
 --| 8  | CSF          | Fiftyville Regional Airport | Fiftyville |
+
+------------------------------------------
 
 --WITH READING FLIGHT INFO, FOUND THE RELEVANT FLIGHTS
 SELECT id, destination_airport_id, hour, minute
 FROM flights
 WHERE year == 2021
 AND month == 7
-AND day == 28
-AND hour >= 10
-AND minute >= 15
+AND day == 29
 AND origin_airport_id == 8
 ORDER BY hour ASC;
 
 --| id | destination_airport_id | hour | minute |
 --+----+------------------------+------+--------+
---| 6  | 5                      | 13   | 49     |
---| 35 | 4                      | 16   | 16     |
---| 1  | 7                      | 17   | 50     |
---| 34 | 5                      | 17   | 20     |
---| 17 | 4                      | 20   | 16     |
+--| 36 | 4                      | 8    | 20     |
+--| 43 | 1                      | 9    | 30     |
+--| 23 | 11                     | 12   | 15     |
+--| 53 | 9                      | 15   | 20     |
+--| 18 | 6                      | 16   | 0      |
 
 --THIS IS THE FLIGHT THE THEFT WILL TAKE
---| 5  | DFS          | Dallas/Fort Worth International Airport | Dallas        |
---| 6  | 5                      | 13   | 49     |
+--| 4  | LGA          | LaGuardia Airport                       | New York City |
+--| 36 | 4                      | 8    | 20     |
 
 ------------------------------------------
 
 --WITH READING PASSENGERS INFO, FOUND THE RELEVANT PASSENGERS
 SELECT passport_number, seat
 FROM passengers
-WHERE flight_id == 6;
+WHERE flight_id == 36;
 
 --| passport_number | seat |
 --+-----------------+------+
---| 3835860232      | 9A   |
---| 1618186613      | 2C   |
---| 7179245843      | 3B   |
---| 1682575122      | 4B   |
---| 7597790505      | 5D   |
---| 6128131458      | 6B   |
---| 6264773605      | 7D   |
---| 3642612721      | 8A   |
+--| 7214083635      | 2A   |
+--| 1695452385      | 3B   |
+--| 5773159633      | 4A   |
+--| 1540955065      | 5C   |
+--| 8294398571      | 6C   |
+--| 1988161715      | 6D   |
+--| 9878712108      | 7A   |
+--| 8496433585      | 7B   |
 
 ------------------------------------------
 
---WITH USING PEOPLE INFO AND ALL OTHER INFO FROM PAST, FOUND THE THEFT AND ACCOMPLICE
+--WITH USING PEOPLE INFO AND ALL OTHER INFO FROM PAST, FOUND THE THIEF
 SELECT id, name, phone_number
 FROM people
-WHERE phone_number IN (SELECT caller FROM phone_calls WHERE year == 2021 AND month == 7 AND day == 28)
-AND passport_number IN (SELECT passport_number FROM passengers WHERE flight_id == 6)
-AND license_plate IN (SELECT license_plate FROM bakery_security_logs WHERE year == 2021 AND month == 7 AND day == 28 AND activity == 'exit');
---| 750165 | Daniel | (971) 555-6468 |
+WHERE phone_number IN (SELECT caller FROM phone_calls WHERE year == 2021 AND month == 7 AND day == 28 AND duration <= 60)
+AND passport_number IN (SELECT passport_number FROM passengers WHERE flight_id == 36)
+AND license_plate IN (SELECT license_plate FROM bakery_security_logs WHERE year == 2021 AND month == 7 AND day == 28 AND hour == 10 AND minute <=25 AND activity == 'exit')
+AND id IN (SELECT person_id
+FROM bank_accounts
+WHERE account_number IN (SELECT account_number FROM atm_transactions
+WHERE year == 2021 AND month == 7 AND day == 28
+AND transaction_type == 'withdraw' AND atm_location LIKE 'Leggett%'));
 
-SELECT caller, receiver, duration
-FROM phone_calls
-WHERE year == 2021
-AND month == 7
-AND day == 28
-AND caller == '(971) 555-6468';
+--|   id   | name  |  phone_number  |
+--+--------+-------+----------------+
+--| 686048 | Bruce | (367) 555-5533 |
+
 
 ------------------------------------------
 
-SELECT id, name
+--FOUND THE ACCOMPLICE
+SELECT name
 FROM people
-WHERE phone_number IN ('(971) 555-6468', '(267) 555-2761');
+WHERE phone_number == '(375) 555-8161'
