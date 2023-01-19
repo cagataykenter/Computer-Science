@@ -1,4 +1,5 @@
 // Implements a dictionary's functionality
+// Pntngnl Xragre
 
 #include <ctype.h>
 #include <stdbool.h>
