@@ -42,5 +42,5 @@
   * Algorithms
   * Data Structures
   * SQL
-  * Optimization-Algorithms
+  * Optimization Algorithms
   * Python Projects
