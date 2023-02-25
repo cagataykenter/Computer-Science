@@ -2,7 +2,7 @@ import textwrap
 
 def wrap(string, max_width):
     
-    x = textwrap.wrap(string, width=4)
+    x = textwrap.wrap(string, width=max_width)
     result = ''
     
     for i in x:
