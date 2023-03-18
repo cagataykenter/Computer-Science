@@ -44,3 +44,4 @@
   * SQL
   * Optimization Algorithms
   * Python Projects
+  * Data Science Projects
