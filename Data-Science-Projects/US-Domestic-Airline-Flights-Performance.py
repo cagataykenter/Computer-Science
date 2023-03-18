@@ -72,7 +72,7 @@ def compute_data_choice_2(df):
 # Application layout
 app.layout = (html.Div(children=[ 
                                 html.H1('US Domestic Airline Flights Performance',
-                                        style={'text-align-last':'centre','color':'#503D36','font-size':24}
+                                        style={'text-align-last':'center','color':'#503D36','font-size':24}
                                        ),
     
                                 # Create an outer division 
