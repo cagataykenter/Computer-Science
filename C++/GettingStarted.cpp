@@ -10,5 +10,7 @@ int main()
 	std::cout << favorite_number;
 	std::cout << " is my favorite number!" << std::endl;
 
+	//std::cout << "No, really!" << favorite_number << "is my favorite number!" << std:: endl;
+
 	return 0;
 }
