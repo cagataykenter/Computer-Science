@@ -5,6 +5,7 @@ from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from deep_translator import GoogleTranslator
 
 # Chrome web driver
 options = webdriver.ChromeOptions()
@@ -14,6 +15,14 @@ chrome_path = ChromeDriverManager().install()
 chrome_service = Service(chrome_path)
 driver = Chrome(options=options, service=chrome_service)
 driver.implicitly_wait(5)
+
+# Define the proxy
+PROXY_HOST = '135.181.43.130'
+PROXY_PORT = '8080'
+proxy_options = {
+    'http': f'http://{PROXY_HOST}:{PROXY_PORT}',
+    'https': f'http://{PROXY_HOST}:{PROXY_PORT}'
+}
 
 # dataframe
 data = pd.DataFrame(
@@ -63,51 +72,112 @@ tfm_sup_links = ['https://www.tfmsuperstore.co.uk/products/cement-425n-25kg-plas
 
 carvers_links = ['https://www.carvers.co.uk/building-materials/cement-additives-salt/cement/cement-25kg-bag-hanson-554246']
 
-buildShop_links = ['https://buildingshop.co.uk/product/cement-25kg-bag-paper-bag/',
+buildingshop_links = ['https://buildingshop.co.uk/product/cement-25kg-bag-paper-bag/',
                    'https://buildingshop.co.uk/product/cement-25kg/',
                    'https://buildingshop.co.uk/product/hanson-white-cement-25kg/']
 
 megatek_links = ['https://www.megateksa.com/sq/cimento-e-bardhe-klasa-42-5-r-20-kg-thes',
                  'https://www.megateksa.com/sq/cimento-krujacem-klasa-32-5-r-25-kg-thes-cimento-portland-me-gur-gelqeror']
 
+menards_links = ['https://www.menards.com/main/building-materials/concrete-cement-masonry/bagged-concrete-cement-mortar/portland-cement-type-il-92-6-94-lbs/1891149/p-1642874260925542-c-5648.htm?tid=8178637347439884202&ipos=1']
+
 def data_manipulation(title, country, store, brand, code, price, bag_price_usd, bulk_price, vat,
                       price_wo_vat, dist_share, transport, ex_fac_price, notes, links):
 
-    brands = ["O'Brien", "Castle", "Blue Circle", "Hanson", "Rugby", "Cement"]
-    stores = ['Travis Perkins', 'B&Q', 'Trade Point', 'Jewson', 'Wickes', 'Bradfords', 'Selco BW', 'TFM Superstore', 'Carvers']
+    brands = ["O'Brien", "Castle", "Blue Circle", "Hanson", "Rugby", "Cement", "Cimento e bardhe", "Mastercraft"]
+    stores = ['Travis Perkins', 'B&Q', 'Trade Point', 'Jewson', 'Wickes', 'Bradfords', 'Selco BW', 'TFM Superstore',
+              'Carvers', 'Building Shop', 'Megatek', 'Menards']
     weight_check = False
     price_check = False
 
+    # rate of exchange
+
+    # gbp to usd
+    gbp_to_usd = 'https://www.xe.com/currencyconverter/convert/?Amount=1&From=GBP&To=USD'
+    driver.get(gbp_to_usd)
+    time.sleep(5)
+    gbp_to_usd = str(driver.find_element(By.CSS_SELECTOR, "p[class*='result__BigRate-sc-1bsijpp-1 iGrAod'").text)
+    gbp_to_usd = gbp_to_usd.split('US')[0].strip()
+
+    # leke to euro
+    leke_to_euro = 'https://www.xe.com/currencyconverter/convert/?Amount=1&From=ALL&To=EUR'
+    driver.get(leke_to_euro)
+    time.sleep(5)
+    leke_to_euro = str(driver.find_element(By.CSS_SELECTOR, "p[class*='result__BigRate-sc-1bsijpp-1 iGrAod'").text)
+    leke_to_euro = leke_to_euro.split('Euros')[0].strip()
+
+    # euro to usd
+    euro_to_usd = 'https://www.xe.com/currencyconverter/convert/?Amount=1&From=EUR&To=USD'
+    driver.get(euro_to_usd)
+    time.sleep(5)
+    euro_to_usd = str(driver.find_element(By.CSS_SELECTOR, "p[class*='result__BigRate-sc-1bsijpp-1 iGrAod'").text)
+    euro_to_usd = euro_to_usd.split('US')[0].strip()
+
+    # text to english
+    text_to_eng = code
+    text_to_eng = GoogleTranslator(source='auto', target='en').translate(text_to_eng)
+    code = text_to_eng
+
+    text_to_eng = title
+    text_to_eng = GoogleTranslator(source='auto', target='en').translate(text_to_eng)
+    title = text_to_eng
+
+    # unit conversions
+    lbs_to_kg = 0.45359237
     # country
     while price_check == False:
         if price[0] == '£':
             country = 'United Kingdom'
-        try:
-            temp_price = price
-            price = float(price[1:])
-            price = temp_price
-            price_check = True
-            break
-        except ValueError:
-            price = price[:-2]
+            try:
+                temp_price = price
+                price = float(price[1:])
+                price = temp_price
+                price_check = True
+                break
+            except ValueError:
+                price = price[:-2]
+        if 'Lekë' in price:
+            country = 'Albania'
+            try:
+                price = price.split('Lekë')[0].strip()
+                price = float(price)
+                price = price * float(leke_to_euro)
+                price = round(price, 2)
+                price = "€" + ' ' + str(price)
+                price_check = True
+                break
+            except ValueError:
+                pass
     # store
     for i in stores:
-        if i in store:
+        if i.lower() in store.lower():
             store = i
-        else:
-            if 'Item In Stock for Home Delivery' in store:
-                store = 'Trade Point'
+            break
+    if store == 'Item In Stock for Home Delivery':
+        store = 'Trade Point'
     # brand
-    for i in brands:
-        if i in title:
-            brand = i
+    if store == 'Menards':
+        if 'Mastercraft' in code:
+            brand = 'Mastercraft'
+        else:
+            pass
+    else:
+        for i in brands:
+            if i.lower() in title.lower():
+                brand = i
+                break
+
     if brand == 'Cement':
+        brand = ''
+    elif brand == 'Cimento e bardhe':
         brand = ''
     # category
     try:
         category = title.split(brand)[1].strip()
     except ValueError:
         category = title.strip()
+    except IndexError:
+        category = title.split(brand)[0].strip()
     # code
     if (store == 'B&Q' or store == 'Trade Point'):
         if 'Standard' and 'Material' in code:
@@ -119,10 +189,24 @@ def data_manipulation(title, country, store, brand, code, price, bag_price_usd, 
             code = code.split('View more')[0].strip()
         else:
             pass
+    elif store == 'Building Shop':
+        temp_code = ''
+        code = code.split('\n')
+        for i in code:
+            temp_code += i + " "
+        code = temp_code
+    elif store == 'Megatek':
+        code = title.split('class')[1].strip().split(',')[0]
+    elif store == 'Menards':
+        code = code.split('Safety Data Sheets')[0].strip()
     else:
         pass
     # price_per_kg
-    kg = title.split('kg')[0].split(' ')[-1].strip()
+    if store == 'Menards':
+        kg = float(title.lower().split('lbs')[0].strip().split('-')[-1].strip()) * lbs_to_kg
+    else:
+        kg = title.lower().split('kg')[0].strip().split(' ')[-1]
+
     while weight_check == False:
         try:
             price_per_kg = str(round(float(price[1:]) / float(kg), 2))
@@ -133,8 +217,19 @@ def data_manipulation(title, country, store, brand, code, price, bag_price_usd, 
 
     if country == 'United Kingdom':
         price_per_kg = '£' + price_per_kg
+    elif country == 'Albania':
+        price_per_kg = '€' + price_per_kg
     # price
     price = price
+    #price in usd
+    if price[0] == '£':
+        bag_price_usd = round(float(price[1:]) * float(gbp_to_usd),2)
+        bag_price_usd = '$' + str(bag_price_usd)
+    elif price[0] == '€':
+        bag_price_usd = round(float(price[1:]) * float(euro_to_usd), 2)
+        bag_price_usd = '$' + str(bag_price_usd)
+    else:
+        pass
 
     # dataset manipulation
     data.loc[len(data.index)] = [country, store, brand, category, code, price_per_kg, price, bag_price_usd,
@@ -306,6 +401,75 @@ def carvers(carvers_links):
                                  price_wo_vat, dist_share, transport, ex_fac_price, notes, links)
     return data
 
+def buildingshop(buildingshop_links):
+
+    for links in buildingshop_links:
+        url = links
+        driver.get(url)
+        time.sleep(5)
+
+        country = store = brand = category = code = price_per_kg = price = bag_price_usd = bulk_price = vat = price_wo_vat = dist_share = transport = ex_fac_price = notes = ''
+
+        title = str(driver.find_element(By.CSS_SELECTOR, "h1[class*='product-title product_title entry-title'").text)
+        price = str(driver.find_element(By.CSS_SELECTOR, "span[class*='woocommerce-Price-amount amount'").text)
+        store = 'Building Shop'
+        code = str(driver.find_element(By.CSS_SELECTOR, "div[class*='woocommerce-Tabs-panel woocommerce-Tabs-panel--description panel entry-content active'").text)
+
+        data = data_manipulation(title, country, store, brand, code, price, bag_price_usd,
+                                 bulk_price,
+                                 vat,
+                                 price_wo_vat, dist_share, transport, ex_fac_price, notes, links)
+    return data
+
+def megatek(megatek_links):
+
+    for links in megatek_links:
+        url = links
+        driver.get(url)
+        time.sleep(5)
+
+        country = store = brand = category = code = price_per_kg = price = bag_price_usd = bulk_price = vat = price_wo_vat = dist_share = transport = ex_fac_price = notes = ''
+
+        title = str(driver.find_element(By.CSS_SELECTOR, "h1[class*='page-title'").text)
+        price = str(driver.find_element(By.CSS_SELECTOR, "span[class*='price-container price-final_price tax weee'").text)
+        store = 'Megatek'
+        code = ''
+
+        data = data_manipulation(title, country, store, brand, code, price, bag_price_usd,
+                                 bulk_price,
+                                 vat,
+                                 price_wo_vat, dist_share, transport, ex_fac_price, notes, links)
+    return data
+
+def menards(menards_links):
+
+    for links in menards_links:
+        options = webdriver.ChromeOptions()
+        options.add_argument('--proxy-server={}'.format(proxy_options['http']))
+        chrome_path = ChromeDriverManager().install()
+        chrome_service = Service(chrome_path)
+        driver = Chrome(options=options, service=chrome_service)
+        driver.implicitly_wait(15)
+
+        url = links
+        driver.get(url)
+        time.sleep(15)
+
+        country = store = brand = category = code = price_per_kg = price = bag_price_usd = bulk_price = vat = price_wo_vat = dist_share = transport = ex_fac_price = notes = ''
+
+        title = str(driver.find_element(By.CSS_SELECTOR, "h1[class*='h3'").text)
+        price = str(driver.find_element(By.CSS_SELECTOR, "span[class*='float-right ml-3 pr-md-5'").text)
+        store = 'Menards'
+        code = str(driver.find_element(By.CSS_SELECTOR, "div[id*='descriptDocs'").text)
+
+        price = price.split('\n')
+
+        data = data_manipulation(title, country, store, brand, code, price, bag_price_usd,
+                                 bulk_price,
+                                 vat,
+                                 price_wo_vat, dist_share, transport, ex_fac_price, notes, links)
+    return data
+
 # diy_tradePoint(diy_tradePoint_links)
 # travis_perkins(travis_perkins_links)
 # jewson(jewson_links)
@@ -313,8 +477,13 @@ def carvers(carvers_links):
 # bradfords(bradfords_links)
 # selco(selco_links)
 # tfm_sup(tfm_sup_links)
-carvers(carvers_links)
+# carvers(carvers_links)
+# buildingshop(buildingshop_links)
+# megatek(megatek_links)
+menards(menards_links)
 
 
 with pd.option_context('display.max_rows', None, 'display.max_columns', None):
     print(data)
+
+# data.to_excel('cement_data.xlsx')
