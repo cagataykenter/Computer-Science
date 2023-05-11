@@ -79,7 +79,10 @@ buildingshop_links = ['https://buildingshop.co.uk/product/cement-25kg-bag-paper-
 megatek_links = ['https://www.megateksa.com/sq/cimento-e-bardhe-klasa-42-5-r-20-kg-thes',
                  'https://www.megateksa.com/sq/cimento-krujacem-klasa-32-5-r-25-kg-thes-cimento-portland-me-gur-gelqeror']
 
-menards_links = ['https://www.menards.com/main/building-materials/concrete-cement-masonry/bagged-concrete-cement-mortar/portland-cement-type-il-92-6-94-lbs/1891149/p-1642874260925542-c-5648.htm?tid=8178637347439884202&ipos=1']
+menards_links = ['https://www.menards.com/main/building-materials/concrete-cement-masonry/bagged-concrete-cement-mortar/portland-cement-type-il-92-6-94-lbs/1891149/p-1642874260925542-c-5648.htm?tid=8178637347439884202&ipos=1',
+                 'https://www.menards.com/main/building-materials/concrete-cement-masonry/bagged-concrete-cement-mortar/portland-cement-type-il-46-2-lbs/1891152/p-1444445321380-c-5648.htm?tid=-4591416816711163858&ipos=5',
+                 'https://www.menards.com/main/building-materials/concrete-cement-masonry/bagged-concrete-cement-mortar/white-portland-cement-type-i-92-6-lb/112770/p-1642874259959041-c-5648.htm?tid=64fa9b44-ede2-4275-96ea-1484570496a1&ipos=1&exp=false']
+
 
 def data_manipulation(title, country, store, brand, code, price, bag_price_usd, bulk_price, vat,
                       price_wo_vat, dist_share, transport, ex_fac_price, notes, links):
@@ -148,6 +151,16 @@ def data_manipulation(title, country, store, brand, code, price, bag_price_usd, 
                 break
             except ValueError:
                 pass
+        if price[0] == '$':
+            country = 'USA'
+            try:
+                temp_price = price
+                price = float(price[1:])
+                price = temp_price
+                price_check = True
+                break
+            except ValueError:
+                price = price[:-2]
     # store
     for i in stores:
         if i.lower() in store.lower():
@@ -203,7 +216,7 @@ def data_manipulation(title, country, store, brand, code, price, bag_price_usd, 
         pass
     # price_per_kg
     if store == 'Menards':
-        kg = float(title.lower().split('lbs')[0].strip().split('-')[-1].strip()) * lbs_to_kg
+        kg = float(title.lower().split('lb')[0].strip().split('-')[-1].strip()) * lbs_to_kg
     else:
         kg = title.lower().split('kg')[0].strip().split(' ')[-1]
 
@@ -219,6 +232,8 @@ def data_manipulation(title, country, store, brand, code, price, bag_price_usd, 
         price_per_kg = '£' + price_per_kg
     elif country == 'Albania':
         price_per_kg = '€' + price_per_kg
+    elif country == 'USA':
+        price_per_kg = '$' + price_per_kg
     # price
     price = price
     #price in usd
@@ -229,7 +244,7 @@ def data_manipulation(title, country, store, brand, code, price, bag_price_usd, 
         bag_price_usd = round(float(price[1:]) * float(euro_to_usd), 2)
         bag_price_usd = '$' + str(bag_price_usd)
     else:
-        pass
+        bag_price_usd = price
 
     # dataset manipulation
     data.loc[len(data.index)] = [country, store, brand, category, code, price_per_kg, price, bag_price_usd,
@@ -463,6 +478,7 @@ def menards(menards_links):
         code = str(driver.find_element(By.CSS_SELECTOR, "div[id*='descriptDocs'").text)
 
         price = price.split('\n')
+        price = price[0] + price[1] + '.' + price[2]
 
         data = data_manipulation(title, country, store, brand, code, price, bag_price_usd,
                                  bulk_price,
@@ -480,7 +496,7 @@ def menards(menards_links):
 # carvers(carvers_links)
 # buildingshop(buildingshop_links)
 # megatek(megatek_links)
-menards(menards_links)
+# menards(menards_links)
 
 
 with pd.option_context('display.max_rows', None, 'display.max_columns', None):
