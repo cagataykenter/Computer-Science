@@ -45,3 +45,5 @@
   * Optimization Algorithms
   * Python Projects
   * Data Science Projects
+  * C
+  * C++
