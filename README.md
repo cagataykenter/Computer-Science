@@ -2,7 +2,7 @@
 
 ## INTRODUCTION
   * This repo is for Computer Science lectures and related projects. 
-  * All lectures are from MIT OpenCourseWare & Stanford Archive
+  * All lectures are from MIT OpenCourseWare & Stanford Archive & Coursera
   * This repo also serves as a portfolio.
   
 ## COMPUTER SCIENCE CURRICULUM
